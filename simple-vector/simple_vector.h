@@ -185,8 +185,7 @@ public:
     // Если перед вставкой значения вектор был заполнен полностью,
     // вместимость вектора должна увеличиться вдвое, а для вектора вместимостью 0 стать равной 1
     Iterator Insert(ConstIterator pos, const Type& value) {
-        assert(pos != begin() -1 && pos != end() + 1);
-        
+        assert(pos != nullptr);
         int index = std::distance(cbegin(), pos);
         if(size_ == 0){
             PushBack(value);
@@ -202,8 +201,6 @@ public:
     }
     
     Iterator Insert(ConstIterator pos, Type&& value) {
-        assert(pos != begin() -1 && pos != end() + 1);
-        
         int index = std::distance(cbegin(), pos);
         if(size_ == 0){
             PushBack(std::move(value));
