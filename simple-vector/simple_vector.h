@@ -26,19 +26,8 @@ public:
 
     SimpleVector() noexcept = default;
 
-    // Создаёт вектор из size элементов, инициализированных значением по умолчанию
-    explicit SimpleVector(size_t size) {
-        ArrayPtr<Type> temp(size);
-
-        std::fill(temp.Get(), temp.Get() + size, Type());
-        vector_.swap(temp);
-
-        size_ = size;
-        capacity_ = size;
-    }
-
     // Создаёт вектор из size элементов, инициализированных значением value
-    SimpleVector(size_t size, const Type& value) {
+    SimpleVector(size_t size, const Type& value = 0) {
         ArrayPtr<Type> temp(size);
 
         std::fill(temp.Get(), temp.Get() + size, value);
@@ -51,12 +40,8 @@ public:
     // Создаёт вектор из std::initializer_list
     SimpleVector(std::initializer_list<Type> init) {
         ArrayPtr<Type> temp(init.size());
-        int counter = 0;
 
-        for(auto& element : init){
-            temp[counter] = element;
-            ++counter;
-        }
+        AssignFunc(init, temp);        
         vector_.swap(temp);
 
         size_ = init.size();
@@ -69,12 +54,9 @@ public:
         
     SimpleVector(const SimpleVector& other) {
         SimpleVector temp(other.GetSize());
-
-        int counter = 0;
-        for(auto& element : other){
-            temp[counter] = element;
-            ++counter;
-        }
+        
+        AssignFunc(other, temp);
+        
         swap(temp);
     }
     
@@ -115,11 +97,13 @@ public:
 
     // Возвращает ссылку на элемент с индексом index
     Type& operator[](size_t index) noexcept {
+        assert(index <= size_);
         return vector_[index];
     }
 
     // Возвращает константную ссылку на элемент с индексом index
     const Type& operator[](size_t index) const noexcept {
+        assert(index <= size_);
         return vector_[index];
     }
 
@@ -201,6 +185,8 @@ public:
     // Если перед вставкой значения вектор был заполнен полностью,
     // вместимость вектора должна увеличиться вдвое, а для вектора вместимостью 0 стать равной 1
     Iterator Insert(ConstIterator pos, const Type& value) {
+        assert(pos != begin() -1 && pos != end() + 1);
+        
         int index = std::distance(cbegin(), pos);
         if(size_ == 0){
             PushBack(value);
@@ -216,6 +202,8 @@ public:
     }
     
     Iterator Insert(ConstIterator pos, Type&& value) {
+        assert(pos != begin() -1 && pos != end() + 1);
+        
         int index = std::distance(cbegin(), pos);
         if(size_ == 0){
             PushBack(std::move(value));
@@ -232,11 +220,16 @@ public:
 
     // "Удаляет" последний элемент вектора. Вектор не должен быть пустым
     void PopBack() noexcept {
+        assert(!IsEmpty());
+      
         size_ -= size_ > 0 ? 1 : 0;
     }
 
     // Удаляет элемент вектора в указанной позиции
     Iterator Erase(ConstIterator pos) {
+        assert(pos != nullptr);
+        assert(!IsEmpty());
+        
         if (pos == (end() - 1)) {
             PopBack();
             return end();
@@ -299,10 +292,19 @@ public:
     ConstIterator cend() const noexcept {
         return end();
     }
-private: 
+private:    
     ArrayPtr<Type> vector_;
     size_t size_ = 0;
     size_t capacity_ = 0;
+    
+    template <typename T, typename F>
+    void AssignFunc(const T& other, F& temp) {
+        int counter = 0;
+        for(auto& element : other) {
+            temp[counter] = element;
+            ++counter;
+        }
+    }
 };
 
 template <typename Type>
@@ -337,3 +339,4 @@ template <typename Type>
 inline bool operator>=(const SimpleVector<Type>& lhs, const SimpleVector<Type>& rhs) {
     return rhs <= lhs;
 }
+
